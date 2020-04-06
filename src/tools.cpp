@@ -19,6 +19,7 @@ double Tools::noise(double stddev, long long seedNum)
 // sense where a car is located using lidar measurement
 lmarker Tools::lidarSense(Car& car, pcl::visualization::PCLVisualizer::Ptr& viewer, long long timestamp, bool visualize)
 {
+	// cout<<"entering lidarSense function"<<endl;
 	MeasurementPackage meas_package;
 	meas_package.sensor_type_ = MeasurementPackage::LASER;
   	meas_package.raw_measurements_ = VectorXd(2);
@@ -38,6 +39,7 @@ lmarker Tools::lidarSense(Car& car, pcl::visualization::PCLVisualizer::Ptr& view
 // sense where a car is located using radar measurement
 rmarker Tools::radarSense(Car& car, Car ego, pcl::visualization::PCLVisualizer::Ptr& viewer, long long timestamp, bool visualize)
 {
+	// cout<<"entering radarSense function"<<endl;
 	double rho = sqrt((car.position.x-ego.position.x)*(car.position.x-ego.position.x)+(car.position.y-ego.position.y)*(car.position.y-ego.position.y));
 	double phi = atan2(car.position.y-ego.position.y,car.position.x-ego.position.x);
 	double rho_dot = (car.velocity*cos(car.angle)*rho*cos(phi) + car.velocity*sin(car.angle)*rho*sin(phi))/rho;
@@ -55,7 +57,7 @@ rmarker Tools::radarSense(Car& car, Car ego, pcl::visualization::PCLVisualizer::
     meas_package.raw_measurements_ << marker.rho, marker.phi, marker.rho_dot;
     meas_package.timestamp_ = timestamp;
 
-    car.ukf.ProcessMeasurement(meas_package);
+    car.ukf.ProcessMeasurement(meas_package);     // call ukf
 
     return marker;
 }
@@ -65,6 +67,7 @@ rmarker Tools::radarSense(Car& car, Car ego, pcl::visualization::PCLVisualizer::
 // int steps:: how many steps to show between present and time and future time
 void Tools::ukfResults(Car car, pcl::visualization::PCLVisualizer::Ptr& viewer, double time, int steps)
 {
+	// cout<<"entering ukfResults function"<<endl;
 	UKF ukf = car.ukf;
 	viewer->addSphere(pcl::PointXYZ(ukf.x_[0],ukf.x_[1],3.5), 0.5, 0, 1, 0,car.name+"_ukf");
 	viewer->addArrow(pcl::PointXYZ(ukf.x_[0], ukf.x_[1],3.5), pcl::PointXYZ(ukf.x_[0]+ukf.x_[2]*cos(ukf.x_[3]),ukf.x_[1]+ukf.x_[2]*sin(ukf.x_[3]),3.5), 0, 1, 0, car.name+"_ukf_vel");

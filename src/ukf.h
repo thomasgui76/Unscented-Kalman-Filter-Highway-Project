@@ -4,6 +4,9 @@
 #include "Eigen/Dense"
 #include "measurement_package.h"
 
+using Eigen::MatrixXd;
+using Eigen::VectorXd;
+
 class UKF {
  public:
   /**
@@ -41,6 +44,11 @@ class UKF {
    */
   void UpdateRadar(MeasurementPackage meas_package);
 
+  void AugmentedSigmaPoints(MatrixXd* Xsig_out);
+
+  void SigmaPointPrediction(MatrixXd* Xsig_in, double delta_t);
+
+  void PredictMeanAndCovariance(VectorXd* x_out, MatrixXd* P_out);
 
   // initially set to false, set to true in first call of ProcessMeasurement
   bool is_initialized_;
@@ -95,6 +103,9 @@ class UKF {
 
   // Sigma point spreading parameter
   double lambda_;
+
+  // add a string name to express different ukf
+  std::string name_;
 };
 
 #endif  // UKF_H

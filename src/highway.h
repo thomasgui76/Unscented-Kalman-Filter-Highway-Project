@@ -26,8 +26,8 @@ public:
 	bool visualize_radar = true;
 	bool visualize_pcd = false;
 	// Predict path in the future using UKF
-	double projectedTime = 0;
-	int projectedSteps = 0;
+	double projectedTime = 2;
+	int projectedSteps = 6;
 	// --------------------------------
 
 	Highway(pcl::visualization::PCLVisualizer::Ptr& viewer)
@@ -54,6 +54,7 @@ public:
 		{
 			UKF ukf1;
 			car1.setUKF(ukf1);
+			// car1.ukf.name_ = "ukf1";
 		}
 		traffic.push_back(car1);
 		
@@ -68,6 +69,7 @@ public:
 		{
 			UKF ukf2;
 			car2.setUKF(ukf2);
+			// car2.ukf.name_ = "ukf2";
 		}
 		traffic.push_back(car2);
 	
@@ -92,6 +94,7 @@ public:
 		{
 			UKF ukf3;
 			car3.setUKF(ukf3);
+			// car3.ukf.name_ = "ukf3";
 		}
 		traffic.push_back(car3);
 
@@ -113,12 +116,13 @@ public:
 			pcl::PointCloud<pcl::PointXYZ>::Ptr trafficCloud = tools.loadPcd("../src/sensors/data/pcd/highway_"+std::to_string(timestamp)+".pcd");
 			renderPointCloud(viewer, trafficCloud, "trafficCloud", Color((float)184/256,(float)223/256,(float)252/256));
 		}
-		
 
 		// render highway environment with poles
 		renderHighway(egoVelocity*timestamp/1e6, viewer);
 		egoCar.render(viewer);
-		
+
+		int idx_lidar = 0;
+		int idx_radar = 1;
 		for (int i = 0; i < traffic.size(); i++)
 		{
 			traffic[i].move((double)1/frame_per_sec, timestamp);
@@ -130,8 +134,10 @@ public:
 				VectorXd gt(4);
 				gt << traffic[i].position.x, traffic[i].position.y, traffic[i].velocity*cos(traffic[i].angle), traffic[i].velocity*sin(traffic[i].angle);
 				tools.ground_truth.push_back(gt);
-				tools.lidarSense(traffic[i], viewer, timestamp, visualize_lidar);
-				tools.radarSense(traffic[i], egoCar, viewer, timestamp, visualize_radar);
+				
+				tools.lidarSense(traffic[i], viewer, timestamp, visualize_lidar);               // use Lidar
+				tools.radarSense(traffic[i], egoCar, viewer, timestamp, visualize_radar);        // use Radar	
+				
 				tools.ukfResults(traffic[i],viewer, projectedTime, projectedSteps);
 				VectorXd estimate(4);
 				double v  = traffic[i].ukf.x_(2);
@@ -140,7 +146,6 @@ public:
     			double v2 = sin(yaw)*v;
 				estimate << traffic[i].ukf.x_[0], traffic[i].ukf.x_[1], v1, v2;
 				tools.estimations.push_back(estimate);
-	
 			}
 		}
 		viewer->addText("Accuracy - RMSE:", 30, 300, 20, 1, 1, 1, "rmse");
